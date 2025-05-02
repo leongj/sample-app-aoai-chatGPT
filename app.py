@@ -11,9 +11,21 @@ from dotenv import load_dotenv
 from backend.auth.auth_utils import get_authenticated_user_details
 from backend.history.cosmosdbservice import CosmosConversationClient
 
+from opencensus.ext.azure.trace_exporter import AzureExporter
+from opencensus.ext.flask.flask_middleware import FlaskMiddleware
+from opencensus.trace.samplers import ProbabilitySampler
+
 load_dotenv()
 
 app = Flask(__name__, static_folder="static")
+INSTRUMENTATION_KEY = os.environ.get("APPLICATIONINSIGHTS_CONNECTION_STRING")
+print("==== creating middleware")
+middleware = FlaskMiddleware(
+    app,
+    exporter=AzureExporter(connection_string=INSTRUMENTATION_KEY),
+    sampler=ProbabilitySampler(rate=1.0),
+)
+print("==== middleware done")
 
 # Static Files
 @app.route("/")
